@@ -66,6 +66,7 @@ public:
     \return Error_t
     */
     virtual Error_t openFile (std::string cAudioFileName, FileIoType_t eIoType, FileSpec_t const *psFileSpec = 0) = 0;
+    
     /*! close the current file
     \return Error_t
     */
