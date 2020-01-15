@@ -44,28 +44,51 @@ int main(int argc, char* argv[])
     //////////////////////////////////////////////////////////////////////////////
     // open the input wave file
     phAudioFile->create (phAudioFile);
-    phAudioFile->openFile(sInputFilePath, CAudioFileIf::kFileRead, ptr_stFileSpec);
+    phAudioFile->openFile(sInputFilePath, CAudioFileIf::kFileRead);
+    phAudioFile->getFileSpec(stFileSpec);
     //////////////////////////////////////////////////////////////////////////////
     // open the output text file
-    hOutputFile.open(sOutputFilePath);
+    hOutputFile.open(sOutputFilePath.c_str(), std::ios::out);
+    if(!hOutputFile.is_open())
+    {
+        std::cout << "Open text file error" << std::endl;
+    }
     
     //////////////////////////////////////////////////////////////////////////////
     // allocate memory
     long long int length = 0;
-    phAudioFile->getFileSpec(stFileSpec);
+
     phAudioFile->getLength(length);
     int iChannel = stFileSpec.iNumChannels;
 //    int iNumOfSample = (*phAudioFile).getLength();
-    *ppfAudioData = new float [iChannel];
+    ppfAudioData = new float* [iChannel];
+    long long iNumSample = kBlockSize;
     for(int i=0;i<iChannel;i++)
-        ppfAudioData[i] = new float[length];
+        ppfAudioData[i] = new float[kBlockSize];
     //////////////////////////////////////////////////////////////////////////////
     // get audio data and write it to the output text file (one column per channel)
-
+    while(!phAudioFile->isEof())
+    {
+        phAudioFile->readData(ppfAudioData, iNumSample);
+        for(int j = 0; j<iNumSample; j++)
+        {
+            for(int i = 0; i<iChannel; i++)
+            {
+                hOutputFile << ppfAudioData[i][j] << "\t";
+            }
+            hOutputFile << std::endl;
+        }
+    }
 
     //////////////////////////////////////////////////////////////////////////////
     // clean-up (close files and free memory)
     phAudioFile->closeFile();
+    phAudioFile->destroy(phAudioFile);
+    hOutputFile.close();
+    for(int i = 0; i<iChannel; i++)
+    {
+        delete[] ppfAudioData[i];
+    }
     delete [] ppfAudioData;
     // all done
     return 0;
