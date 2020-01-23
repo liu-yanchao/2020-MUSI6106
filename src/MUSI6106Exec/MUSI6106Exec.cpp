@@ -12,7 +12,7 @@ using std::endl;
 
 // local function declarations
 void    showClInfo ();
-void    iirFilter(float** prtInput, float** prtOutput, int iFileLength, int iChannels, float fs, float t0, float g, float c)
+bool    iirFilter(float** prtInput, float** prtOutput, int iFileLength, int iChannels, float fs, float t0, float g, float c)
 {
     int iNumOfDelay = int(t0 * fs);
     for(int i = 0; i<iChannels; i++)
@@ -29,6 +29,7 @@ void    iirFilter(float** prtInput, float** prtOutput, int iFileLength, int iCha
             }
         }
     }
+    return true;
 }
 
 bool firFilter(float** prtInput, float** prtOutput, int iFileLength, int iChannels, float fs, float t0, float g)
@@ -88,22 +89,20 @@ int main(int argc, char* argv[])
 //        cout << "Running default test cases" << endl;
 //        return -1;
 //    }
-//    if (argc != 6)
-//    {
-//        cout << "Please parse argument by 'inputFilePath, outputFilePath, filterDelayTime, filterType, filterGain'" << endl;
-//        return -1;
-//    }
+    if (argc != 6)
+    {
+        cout << "Please parse argument by 'inputFilePath, outputFilePath, filterDelayTime, filterType, filterGain'" << endl;
+        return -1;
+    }
 
     sInputFilePath = argv[1];
     sOutputFilePath = argv[2];
     filterDelayTime = atof(argv[3]);
     filterType = argv[4];
     filterGain = atof(argv[5]);
-    filterIirC = atof(argv[6]);
     
-    
-    sInputFilePath = "/Users/yanchaoliu/Study/Spring\ 2020\ Local/MUSI\ 6106\ Audio\ Software\ Eng/Demo_Project/Audio/sweep.wav";
-    sOutputFilePath = "/Users/yanchaoliu/Study/Spring\ 2020\ Local/MUSI\ 6106\ Audio\ Software\ Eng/Demo_Project/Audio/sweep_output.wav";
+//    sInputFilePath = "/Users/yanchaoliu/Study/Spring\ 2020\ Local/MUSI\ 6106\ Audio\ Software\ Eng/Demo_Project/Audio/sweep.wav";
+//    sOutputFilePath = "/Users/yanchaoliu/Study/Spring\ 2020\ Local/MUSI\ 6106\ Audio\ Software\ Eng/Demo_Project/Audio/sweep_output.wav";
 
 
     
@@ -166,16 +165,18 @@ int main(int argc, char* argv[])
         }
         iPosition += iNumFrames;
     }
-    //cout << (ppfOutputData[0][0]) << endl;
-    //phOutputAudioFile->writeData(ppfOutputData, iLengthInFrame);
+
     
 
     cout << "\nreading/writing done in: \t" << (clock() - time)*1.F / CLOCKS_PER_SEC << " seconds." << endl;
     //////////////////////////////////////////////////////////////////////////////
     // process audio data
-//    firFilter(ppfInputData, ppfOutputData, iLengthInFrame, stFileSpec.iNumChannels, stFileSpec.fSampleRateInHz, filterDelayTime, filterGain);
-    firFilter(ppfInputData, ppfOutputData, iLengthInFrame, stFileSpec.iNumChannels, stFileSpec.fSampleRateInHz, filterDelayTime, filterGain);
-//    iirFilter(ppfInputData, ppfOutputData, iLengthInFrame, stFileSpec.iNumChannels, stFileSpec.fSampleRateInHz, filterDelayTime, filterGain, filterIirC);
+    
+    if(filterType == "FIR")
+        firFilter(ppfInputData, ppfOutputData, iLengthInFrame, stFileSpec.iNumChannels, stFileSpec.fSampleRateInHz, filterDelayTime, filterGain);
+    if(filterType == "IIR")
+        iirFilter(ppfInputData, ppfOutputData, iLengthInFrame, stFileSpec.iNumChannels, stFileSpec.fSampleRateInHz, filterDelayTime, filterGain, filterIirC);
+    
     //////////////////////////////////////////////////////////////////////////////
     // output audio data
     iPosition = 0;
@@ -222,49 +223,6 @@ int main(int argc, char* argv[])
 
 }
 
-
-
-// input: pointer of buffer
-// output: none
-// modify the input buffer with FIR or IIR filter
-//void firFilter(const float** prtInput, float** prtOutput, const int iFileLength, const int iChannels, const float fs, const float t0, const float g)
-//{
-//    int iNumOfDelay = int(t0 * fs);
-//    for(int i = 0; i<iChannels; i++)
-//    {
-//        for(int j = 0; j<iFileLength; j++)
-//        {
-//            if(j>=iNumOfDelay)
-//            {
-//                prtOutput[i][j] = prtInput[i][j] + g*prtInput[i][j - iNumOfDelay];
-//            }
-//            else
-//            {
-//                prtOutput[i][j] = prtInput[i][j];
-//            }
-//        }
-//    }
-//
-//}
-
-//void IirFilter(const float** prtInput, float** prtOutput, const int iFileLength, const int iChannels, const float fs, const float t0, const float g, const float c)
-//{
-//    int iNumOfDelay = int(t0 * fs);
-//    for(int i = 0; i<iChannels; i++)
-//    {
-//        for(int j = 0; j<iFileLength; j++)
-//        {
-//            if(j>=iNumOfDelay)
-//            {
-//                prtOutput[i][j] = c*prtInput[i][j] + g*prtOutput[i][j - iNumOfDelay];
-//            }
-//            else
-//            {
-//                prtOutput[i][j] = c*prtInput[i][j];
-//            }
-//        }
-//    }
-//}
 
 void     showClInfo()
 {
