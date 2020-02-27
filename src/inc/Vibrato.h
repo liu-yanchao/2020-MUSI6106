@@ -8,7 +8,16 @@
 #ifndef Vibrato_h
 #define Vibrato_h
 
+#include "AudioFileIf.h"
 #include "Lfo.h"
+
+///create(ptr_vibrato)
+///init(, ModulationFrequencyInHz, Basic Delay in Sec, Channel Number)
+///setParam(ModulationFreqInHz, ModulationWidthInSec);
+///process(pptr_audioData, pptr_AudioOutputData, numOfFrames)
+///
+///destroy(ptr_vibrato)
+///
 
 class CVibrato
 {
@@ -17,56 +26,43 @@ public:
     float basicDelay;
     float delayWidth;
     float sampleRateInSample;
+    float fModulationFreq;
     int numOfChannel;
+    
+    CRingBuffer<float> **pptr_RingBuffer;
+    CLfo *ptr_Clfo;
+    
     
     CVibrato(): basicDelay(0), delayWidth(0), sampleRateInSample(0), numOfChannel(0)
     {
 
     }
     
+    void create(CVibrato* ptr_vibrato)
+    {
+        ptr_vibrato = new CVibrato();
+    }
+    
+    void destroy(CVibrato* ptr_vibrato)
+    {
+        delete ptr_vibrato;
+        ptr_vibrato = 0;
+    }
+    
     void init(float modulationFrequencyInHz, float sampleRateInHz)
     {
-        
+        fModulationFreq = modulationFrequencyInHz;
+//        sampleRateInSample = sampleRateInHz;
     }
     
-    enum ParamType
-    {
-        basicDelay_t,
-        delayWidth_t,
-        sampleRate_t,
-        modFrequency
-    };
+
     
-    bool isParamValid(ParamType param_t, float param)
+    void process(float **pInputBuffer, float ** pOutputBlock, long long blockSize)
     {
-        switch (param_t)
-        {
-            case sampleRate_t:
-                if(param > 0)
-                    return true;
-                else
-                    return false;
-            case basicDelay_t:
-                if(param > 0)
-                    return true;
-                else
-                    return false;
-            case delayWidth_t:
-                if(param < basicDelay && param > 0)
-                    return true;
-                else
-                    return false;
-                break;
-                
-            default:
-                break;
-        }
-        return true;
-    }
-    
-    void process(CAudioFileIf*& pInputBlock, CAudioFileIf*& pOutputBlock)
-    {
-        
+        /*
+         ptr_CVibrato->process(ppfAudioData, ppfOutputData, blockSize);
+
+        */
     }
 
     
