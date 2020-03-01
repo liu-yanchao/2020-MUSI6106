@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
 {
     std::string             sInputFilePath,                 //!< file paths
                             sOutputFilePath;
-
+    
     static const int        kBlockSize = 1024;
 
     clock_t                 time = 0;
@@ -60,9 +60,9 @@ int main(int argc, char* argv[])
     {
         sInputFilePath = argv[1];
         sOutputFilePath = argv[2];
-        fModFrequencyInHz = atof(argv[4]);
-        fBasicDelayInSec = atof(argv[5]);
-        fModWidthInSec = atof(argv[6]);
+        fModFrequencyInHz = atof(argv[3]);
+        fBasicDelayInSec = atof(argv[4]);
+        fModWidthInSec = atof(argv[5]);
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -78,7 +78,25 @@ int main(int argc, char* argv[])
     fSampleRate = stFileSpec.fSampleRateInHz;
     
     // open output file
+    CAudioFileIf::create(ptr_OutputFile);
     ptr_OutputFile->openFile(sOutputFilePath, CAudioFileIf::kFileWrite, &stFileSpec);
+    
+    if (!phAudioFile->isOpen())
+    {
+        cout << "Input file open error!";
+        
+        CAudioFileIf::destroy(phAudioFile);
+        CAudioFileIf::destroy(ptr_OutputFile);
+        return -1;
+    }
+    else if (!ptr_OutputFile->isOpen())
+    {
+        cout << "Output file cannot be initialized!";
+        
+        CAudioFileIf::destroy(phAudioFile);
+        CAudioFileIf::destroy(ptr_OutputFile);
+        return -1;
+    }
     
 
     //////////////////////////////////////////////////////////////////////////////
@@ -105,6 +123,10 @@ int main(int argc, char* argv[])
     //////////////////////////////////////////////////////////////////////////////
     // get audio data and write it to the output file
     long long blockSize = kBlockSize;
+    ptr_CVibrato = new CVibrato;
+    
+    ptr_CVibrato->init(stFileSpec.iNumChannels, fModFrequencyInHz, fSampleRate, fBasicDelayInSec, fModWidthInSec);
+
     
     while (!phAudioFile->isEof())
     {
@@ -119,11 +141,18 @@ int main(int argc, char* argv[])
     // clean-up
     CAudioFileIf::destroy(phAudioFile);
     hOutputFile.close();
-
+    
+    ptr_CVibrato->destroy(ptr_CVibrato);
+    
     for (int i = 0; i < stFileSpec.iNumChannels; i++)
+    {
+        delete [] ppfOutputData[i];
         delete[] ppfAudioData[i];
+    }
     delete[] ppfAudioData;
+    delete [] ppfOutputData;
     ppfAudioData = 0;
+    
 
     return 0;
 
@@ -134,6 +163,7 @@ void     showClInfo()
 {
     cout << "GTCMT MUSI6106 Executable" << endl;
     cout << "(c) 2014-2020 by Alexander Lerch" << endl;
+    cout << "Yanchao Liu's version" << endl;
     cout  << endl;
 
     return;
